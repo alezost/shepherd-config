@@ -306,8 +306,20 @@ again."
                           strings)
                 #f))))
 
+(define amixer-service
+  (let ((aset (lambda args
+                (run-command (append '("amixer" "set" "-q")
+                                     args)))))
+    (make-service
+      #:docstring "Set sound parameters."
+      #:provides '(amixer)
+      #:start (lambda _
+                (and (aset "Master" "30%")
+                     (aset "PCM" "80%")
+                     (aset "Line" "80%" "mute"))))))
+
 (define misc-services
-  (list daemons-target eval-service))
+  (list daemons-target eval-service amixer-service))
 
 
 ;;; Display services
@@ -457,6 +469,7 @@ none are specified."
                (make-display-services ":1")))
 
 (start 'daemons)
+(start amixer-service)
 ;; (start 'gui:0 'xterm 'stumpwm 'mosd 'unclutter 'emacs 'conkeror)
 
 (action 'dmd 'daemonize)  ; send to the background
