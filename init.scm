@@ -53,17 +53,23 @@ Use 'vt7' for display ':0', vt8 for ':1', etc."
                                  (+ 1 (string-index display #\:))))))
     (string-append "vt" (number->string (+ 7 display-num)))))
 
+(define (env-replace env name val)
+  "Return environment by adding new variable NAME/VALUE to ENV.
+If the variable NAME already exists in ENV, it will be replaced."
+  (let* ((rx (make-regexp (string-append "^" name "=")))
+         (new-env (filter (negate (cut regexp-exec rx <>))
+                          env)))
+    (cons (string-append name "=" val)
+          new-env)))
+
 (define* (environ* #:optional display)
   "Return environment with some additional things.
 If DISPLAY is specified, add it to the environment."
-  (let ((env (cons (string-append "DBUS_SESSION_BUS_ADDRESS="
-                                   %dbus-address)
-                   (environ))))
+  (let ((env (env-replace (environ)
+                          "DBUS_SESSION_BUS_ADDRESS"
+                          %dbus-address)))
     (if display
-        ;; FIXME Is it reliable?  As a new var is cons-ed, there may be
-        ;; several different values for DISPLAY.
-        (cons (string-append "DISPLAY=" display)
-              env)
+        (env-replace env "DISPLAY" display)
         env)))
 
 ;; Override `make-system-constructor' to make it similar to
