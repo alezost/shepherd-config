@@ -474,10 +474,14 @@ none are specified."
                (make-display-services ":0")
                (make-display-services ":1")))
 
-(start 'daemons)
-(start amixer-service)
-;; (start 'gui:0 'xterm 'stumpwm 'mosd 'unclutter 'emacs 'conkeror)
+;; Do not start services if DMD_SERVICES is 0 or empty.
+(let ((env (getenv "DMD_SERVICES")))
+  (unless (and env
+               (or (string-null? env)
+                   (string= "0" env)))
+    (start 'daemons)
+    (start amixer-service)))
 
-(action 'dmd 'daemonize)  ; send to the background
+(action 'dmd 'daemonize)
 
 ;;; init.scm ends here
