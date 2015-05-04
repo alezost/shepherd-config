@@ -399,7 +399,14 @@ again."
   (make-simple-forkexec-display-service display
     #:docstring "Openbox"
     #:provides '(openbox wm)
-    #:command '("openbox")))
+    #:command '("openbox")
+    #:actions
+    (make-actions
+     (reload
+      "Reload configuration file."
+      (make-system-constructor-with-env
+       '("openbox" "--reconfigure")
+       #:display display)))))
 
 (define (stumpwm-service display)
   (make-simple-forkexec-display-service display
