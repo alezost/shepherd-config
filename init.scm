@@ -352,7 +352,7 @@ again."
   (make-simple-system-display-service display
     #:docstring "Xset"
     #:provides '(xset)
-    #:command (list "xset" "r" "rate" "193" "43")))
+    #:command (list "xset" "r" "rate" "193" "43" "b" "off")))
 
 (define (xsetroot-service display)
   (make-simple-system-display-service display
