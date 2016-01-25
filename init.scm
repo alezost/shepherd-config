@@ -1,6 +1,6 @@
-;;; init.scm --- dmd init file
+;;; init.scm --- Shepherd init file
 
-;; Copyright © 2015 Alex Kost
+;; Copyright © 2015, 2016 Alex Kost
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
  (al plists)
  (al places))
 
-;; (use-modules (dmd service) (oop goops))
+;; (use-modules (shepherd service) (oop goops))
 
 (define %dbus-address
   (format #f "unix:path=/tmp/dbus-~a" (getuid)))
@@ -210,7 +210,7 @@ reverse order."
          #:display display
 
          ;; I changed my mind: do not require 'x' because if there is
-         ;; some running X server not managed by dmd, I still want to be
+         ;; some running X server not managed by shepherd, I still want to be
          ;; able to 'start <something>:<N>' there.
 
          ;; #:requires '(x)
@@ -481,14 +481,14 @@ none are specified."
                (make-display-services ":0")
                (make-display-services ":1")))
 
-;; Do not start services if DMD_SERVICES is 0 or empty.
-(let ((env (getenv "DMD_SERVICES")))
+;; Do not start services if SHEPHERD_SERVICES is 0 or empty.
+(let ((env (getenv "SHEPHERD_SERVICES")))
   (unless (and env
                (or (string-null? env)
                    (string= "0" env)))
     (start 'daemons)
     (start amixer-service)))
 
-(action 'dmd 'daemonize)
+(action 'shepherd 'daemonize)
 
 ;;; init.scm ends here
