@@ -275,7 +275,7 @@ reverse order."
     #:provides '(emacsd)
     #:start
     (make-system-constructor-with-env
-     '("emacs" "--daemon"))
+     '("emacs" "--no-site-file" "--daemon"))
     #:stop
     (make-system-destructor
      '("emacsclient" "--eval" "(let (kill-emacs-hook) (kill-emacs))"))))
@@ -424,7 +424,7 @@ again."
   (make-simple-forkexec-display-service display
     #:docstring "Emacs"
     #:provides '(emacs)
-    #:command '("emacs")))
+    #:command '("emacs" "--no-site-file")))
 
 (define (conkeror-service display)
   (make-simple-forkexec-display-service display
