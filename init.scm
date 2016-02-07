@@ -255,8 +255,11 @@ reverse order."
     ;; so 'make-forkexec-constructor' is not used.
     #:start
     (make-system-constructor
-     (list "gpg-agent" "--daemon"
-           "--pinentry-program" (home-file ".guix-profile/bin/pinentry")))
+     (let ((pinentry (guix-user-profile-file "bin/pinentry")))
+       `("gpg-agent" "--daemon"
+         ,@(if (not (file-exists? pinentry))
+               '()
+               (list "--pinentry-program" pinentry)))))
     #:stop
     (make-system-destructor
      '("gpg-connect-agent" "killagent" "/bye"))))
