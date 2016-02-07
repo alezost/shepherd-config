@@ -29,8 +29,10 @@
 (use-modules
  (srfi srfi-1)
  (srfi srfi-26)
+ (al files)
  (al plists)
- (al places))
+ (al places)
+ (al utils))
 
 ;; (use-modules (shepherd service) (oop goops))
 
@@ -337,18 +339,35 @@ again."
   "Return a sudo command for running command indicated by ARGS."
   (cons* "sudo" "--non-interactive" "--" args))
 
-(define* (xorg-service #:key (display ":0") (vt "vt7")
-                       (extra-options '("-nolisten" "tcp"
-                                        "-logverbose" "-noreset")))
+(define* (xorg-command #:key (display ":0") (vt "vt7"))
+  (let* ((config-dir     (config-file "X/xorg.conf"))
+         (module-dir     (guix-user-profile-file "lib/xorg/modules"))
+         (x-font-dir     (guix-user-profile-file "share/fonts/X11"))
+         (x-font-subdirs (if (file-exists? x-font-dir)
+                             (find-files x-font-dir ".")
+                             '()))
+         (user-font-dir  (home-file ".local/share/fonts"))
+         (font-dirs      (if (file-exists? user-font-dir)
+                             (cons user-font-dir x-font-subdirs)
+                             x-font-subdirs)))
+    `("Xdaemon" ,display ,vt
+      "-nolisten" "tcp" "-logverbose" "-noreset"
+      "-configdir" ,config-dir
+      ,@(if (null? x-font-subdirs)
+            '()
+            (list "-fp" (apply comma-separated font-dirs)))
+      ,@(if (not (file-exists? module-dir))
+            '()
+            (list "-modulepath" module-dir)))))
+
+(define* (xorg-service #:key display vt)
   (make-display-service
     #:display display
     #:docstring "Xorg server"
     #:provides '(x)
     #:start (make-system-constructor
-             (apply sudo-command
-                    "Xdaemon" display vt
-                    "-configdir" (config-file "X/xorg.conf")
-                    extra-options))
+             (apply sudo-command (xorg-command #:display display
+                                               #:vt vt)))
     #:stop (make-system-destructor
             (sudo-command "Xkill" display))))
 
