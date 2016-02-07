@@ -333,6 +333,10 @@ again."
 
 ;;; Display services
 
+(define (sudo-command . args)
+  "Return a sudo command for running command indicated by ARGS."
+  (cons* "sudo" "--non-interactive" "--" args))
+
 (define* (xorg-service #:key (display ":0") (vt "vt7")
                        (extra-options '("-nolisten" "tcp"
                                         "-logverbose" "-noreset")))
@@ -341,11 +345,12 @@ again."
     #:docstring "Xorg server"
     #:provides '(x)
     #:start (make-system-constructor
-             (cons* "sudo" "Xdaemon" display vt
+             (apply sudo-command
+                    "Xdaemon" display vt
                     "-configdir" (config-file "X/xorg.conf")
                     extra-options))
     #:stop (make-system-destructor
-            (list "sudo" "Xkill" display))))
+            (sudo-command "Xkill" display))))
 
 (define (xorg-service* display)
   (xorg-service #:display display
