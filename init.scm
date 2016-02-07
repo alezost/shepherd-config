@@ -323,9 +323,9 @@ again."
       #:docstring "Set sound parameters."
       #:provides '(amixer)
       #:start (lambda _
-                (and (aset "Master" "30%")
-                     (aset "PCM" "80%")
-                     (aset "Line" "80%" "mute"))))))
+                (and (aset "Master" "50%")
+                     ;; (aset "PCM" "80%")
+                     (aset "Line" "10%" "mute"))))))
 
 (define misc-services
   (list daemons-target eval-service amixer-service))
