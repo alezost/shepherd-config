@@ -341,7 +341,10 @@ again."
 
 (define* (xorg-command #:key (display ":0") (vt "vt7"))
   (let* ((config-dir     (config-file "X/xorg.conf"))
-         (module-dir     (guix-user-profile-file "lib/xorg/modules"))
+         (module-dir     (let ((modules "lib/xorg/modules"))
+                           (first-existing-file
+                            (guix-system-profile-file modules)
+                            (guix-user-profile-file modules))))
          (x-font-dir     (guix-user-profile-file "share/fonts/X11"))
          (x-font-subdirs (if (file-exists? x-font-dir)
                              (find-files x-font-dir ".")
@@ -356,7 +359,7 @@ again."
       ,@(if (null? x-font-subdirs)
             '()
             (list "-fp" (apply comma-separated font-dirs)))
-      ,@(if (not (file-exists? module-dir))
+      ,@(if (not module-dir)
             '()
             (list "-modulepath" module-dir)))))
 
