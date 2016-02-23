@@ -1,0 +1,77 @@
+** About
+
+This is my user configuration for [[http://www.gnu.org/software/shepherd/][Shepherd]].  I use Shepherd not only to
+run my user daemons, but also to start X sessions, window managers,
+various GUI utils and applications.
+
+Shepherd is a great program for managing user services.  Previously I
+used Systemd for this purpose (see my [[https://github.com/alezost/systemd-user-units][systemd-user-units]] repository),
+but Shepherd is a much more convenient tool because you have a whole
+power of a general-purpose language ([[http://www.gnu.org/software/guile/][Guile]]) in your hands.  It's like
+comparing [[http://www.gnu.org/software/emacs/][Emacs]] and [[http://www.nano-editor.org/][nano]]: with Emacs you can program your environment,
+while with nano… well you can probably do some text editing in nano, I
+don't want to hurt nano fans.
+
+My config consists of a single =init.scm= file which uses some of my
+[[https://gitlab.com/alezost-config/guile][guile modules]].
+
+** Description
+
+There is nothing interesting with the usual daemons (like gpg-agent or
+dbus), except maybe that I have a "target" service =daemons= that allows
+me to control all the daemons at once, like this [fn:1]:
+
+#+BEGIN_SRC sh
+herd status daemons
+herd stop daemons
+#+END_SRC
+
+*** X server and friends
+
+GUI services are more interesting.  At first there is a problem: after
+starting X server, we should wait for some time, and only when it is
+ready, we can start window manager and other programs on it.  Thanks to
+[[https://github.com/joukewitteveen/][Jouke Witteveen]] there is a beautiful solution for this problem: a [[https://github.com/joukewitteveen/xlogin/blob/master/x-daemon.in][bash
+script]] that runs X server as a daemon.  I made a stand-alone package for
+this Xdaemon script [[https://github.com/alezost/xdaemon][here]].
+
+Another obstacle for me was that I wanted to start X server with my
+configuration and modules placed in non-standard directories, but Xorg
+does not allow this when it is run with elevated rights.  Although
+recent Xorg versions have some support to be started with non-super-user
+rights, I'm not able to use this feature, so the only option I see is to
+start X server with =sudo=.  So I configured [[https://github.com/alezost/config/blob/master/etc/sudoers][/etc/sudoers]] so that
+Xdaemon script (installed to an unmodifiable global directory) could be
+run with sudo without password.
+
+Now if I run the following command [fn:2]:
+
+#+BEGIN_SRC sh
+herd start gui:0
+#+END_SRC
+
+X server is started on DISPLAY :0 and vt7, then some auxiliary services
+are started (xset, xmodmap, etc.), and finally xterm (as I didn't
+specify anything after "gui:0").
+
+If I run this:
+
+#+BEGIN_SRC sh
+herd start gui:1 stumpwm emacs
+#+END_SRC
+
+Another X server is started on DISPLAY :1 and vt8, and instead of xterm
+I got stumpwm and emacs running on this DISPLAY.
+
+Then I can stop services, restart services, start another window manager
+on a particular display, and do other service managing tasks.  Shepherd
+is not as mature as systemd and is not very well documented, but it is
+really great!
+
+
+[fn:1] Actually instead of writing =herd start/status/…= I just write
+=start/status/…= as I have several shell aliases for herd commands that
+can be found [[https://github.com/alezost/config/blob/master/bash/bashrc][here]].
+
+[fn:2] For more convenience I wrote a wrapper [[https://github.com/alezost/guile-config/blob/master/scripts/gui][guile script]] that allows
+me to start X server and other things on a free DISPLAY.
