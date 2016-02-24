@@ -509,7 +509,8 @@ none are specified."
        (append daemons
                misc-services
                (make-display-services ":0")
-               (make-display-services ":1")))
+               (make-display-services ":1")
+               (make-display-services ":2")))
 
 ;; Do not start services if SHEPHERD_SERVICES is 0 or empty.
 (let ((env (getenv "SHEPHERD_SERVICES")))
