@@ -345,7 +345,7 @@ again."
                            (first-existing-file
                             (guix-system-profile-file modules)
                             (guix-user-profile-file modules))))
-         (x-font-dir     (guix-user-profile-file "share/fonts/X11"))
+         (x-font-dir     (guix-profile-file "fonts" "share/fonts/X11"))
          (x-font-subdirs (if (file-exists? x-font-dir)
                              (find-files x-font-dir ".")
                              '()))
