@@ -9,7 +9,7 @@ used Systemd for this purpose (see my [[https://github.com/alezost/systemd-user-
 but Shepherd is a much more convenient tool because you have a whole
 power of a general-purpose language ([[http://www.gnu.org/software/guile/][Guile]]) in your hands.  It's like
 comparing [[http://www.gnu.org/software/emacs/][Emacs]] and [[http://www.nano-editor.org/][nano]]: with Emacs you can program your environment,
-while with nano… well you can probably do some text editing in nano, I
+while with nano… well, you can probably do some text editing in nano, I
 don't want to hurt nano fans.
 
 My config consists of a single =init.scm= file which uses some of my
@@ -28,7 +28,7 @@ herd stop daemons
 
 *** X server and friends
 
-GUI services are more interesting.  At first there is a problem: after
+GUI services are more interesting.  At first, there is a problem: after
 starting X server, we should wait for some time, and only when it is
 ready, we can start window manager and other programs on it.  Thanks to
 [[https://github.com/joukewitteveen/][Jouke Witteveen]] there is a beautiful solution for this problem: a [[https://github.com/joukewitteveen/xlogin/blob/master/x-daemon.in][bash
