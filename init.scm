@@ -29,6 +29,7 @@
 (use-modules
  (srfi srfi-1)
  (srfi srfi-26)
+ (al display)
  (al files)
  (al plists)
  (al places)
@@ -50,9 +51,7 @@
 (define (display->vt display)
   "Convert DISPLAY string into a string with VT number.
 Use 'vt7' for display ':0', vt8 for ':1', etc."
-  (let ((display-num (string->number
-                      (substring display
-                                 (+ 1 (string-index display #\:))))))
+  (let ((display-num (display-string->number display)))
     (string-append "vt" (number->string (+ 7 display-num)))))
 
 (define (env-replace env name val)
