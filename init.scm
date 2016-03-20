@@ -33,6 +33,7 @@
  (al files)
  (al plists)
  (al places)
+ (al processes)
  (al utils))
 
 ;; (use-modules (shepherd service) (oop goops))
@@ -54,24 +55,15 @@ Use 'vt7' for display ':0', vt8 for ':1', etc."
   (let ((display-num (display-string->number display)))
     (string-append "vt" (number->string (+ 7 display-num)))))
 
-(define (env-replace env name val)
-  "Return environment by adding new variable NAME/VALUE to ENV.
-If the variable NAME already exists in ENV, it will be replaced."
-  (let* ((rx (make-regexp (string-append "^" name "=")))
-         (new-env (filter (negate (cut regexp-exec rx <>))
-                          env)))
-    (cons (string-append name "=" val)
-          new-env)))
-
 (define* (environ* #:optional display)
   "Return environment with some additional things.
 If DISPLAY is specified, add it to the environment."
-  (let ((env (env-replace (environ)
-                          "DBUS_SESSION_BUS_ADDRESS"
-                          %dbus-address)))
-    (if display
-        (env-replace env "DISPLAY" display)
-        env)))
+  (environment-excursion
+   (lambda ()
+     (setenv "DBUS_SESSION_BUS_ADDRESS" %dbus-address)
+     (when display
+        (setenv "DISPLAY" display)))
+   environ))
 
 ;; Override `make-system-constructor' to make it similar to
 ;; `make-forkexec-constructor', i.e. make it support a list of strings
@@ -91,15 +83,9 @@ If DISPLAY is specified, add it to the environment."
     (not (run-command command))))
 
 (define* (make-system-constructor-with-env command #:key display)
-  ;; FIXME Is there a better way to start COMMAND synchronously with
-  ;; some environment?
   (lambda _
-    (let ((old-env (environ))
-          (new-env (environ* display)))
-      (environ new-env)
-      (let ((res (run-command command)))
-        (environ old-env)
-        res))))
+    (with-environment-excursion (environ* display)
+      (run-command command))))
 
 (define* (make-forkexec-constructor-with-env command #:key display)
   (make-forkexec-constructor
