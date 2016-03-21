@@ -92,6 +92,12 @@ If DISPLAY is specified, add it to the environment."
    command
    #:environment-variables (environ* display)))
 
+(define (available-display)
+  ;; Check only the first 3 displays.  If none is used, it is very
+  ;; unlikely that there is an available X server on a higher DISPLAY.
+  (or (first-used-display 3)
+      (first-unused-display)))
+
 
 ;;; Auxiliary code for services
 
@@ -229,9 +235,12 @@ reverse order."
   (make-service
     #:docstring "D-Bus Session Daemon"
     #:provides '(dbus)
-    #:start (make-forkexec-constructor
+    #:start (make-forkexec-constructor-with-env
              (list "dbus-daemon" "--session" "--nofork"
-                   "--address" %dbus-address))
+                   "--address" %dbus-address)
+             ;; Start dbus with $DISPLAY, as dbus may start services
+             ;; (e.g., notification daemon) that need this environment.
+             #:display (available-display))
     #:stop (make-kill-destructor)))
 
 (define gpg-agent
