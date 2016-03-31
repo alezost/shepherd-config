@@ -71,7 +71,7 @@ really great!
 
 [fn:1] Actually instead of writing =herd start/status/…= I just write
 =start/status/…= as I have several shell aliases for herd commands that
-can be found [[https://github.com/alezost/config/blob/master/bash/bashrc][here]].
+can be found [[https://github.com/alezost/shell-config/blob/master/bash/bashrc][here]].
 
 [fn:2] For more convenience I wrote a wrapper [[https://github.com/alezost/guile-config/blob/master/scripts/gui][guile script]] that allows
 me to start X server and other things on a free DISPLAY.
