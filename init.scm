@@ -333,6 +333,10 @@ again."
   "Return a sudo command for running command indicated by ARGS."
   (cons* "sudo" "--non-interactive" "--" args))
 
+(define (has-fonts.dir? directory)
+  "Return #t if DIRECTORY exists and has 'fonts.dir' file."
+  (file-exists? (string-append directory "/fonts.dir")))
+
 (define* (xorg-command #:key (display ":0") (vt "vt7"))
   (let* ((config-dir     (config-file "X/xorg.conf"))
          (module-dir     (let ((modules "lib/xorg/modules"))
@@ -345,9 +349,10 @@ again."
                              '()))
          (ttf-dir        (guix-profile-file "fonts" "share/fonts/truetype"))
          (user-font-dir  (home-file ".local/share/fonts"))
-         (font-dirs      (if (file-exists? user-font-dir)
-                             (cons* user-font-dir ttf-dir x-font-subdirs)
-                             (cons ttf-dir x-font-subdirs))))
+         (font-dirs      (filter has-fonts.dir?
+                                 (cons* user-font-dir
+                                        ttf-dir
+                                        x-font-subdirs))))
     `("Xdaemon" ,display ,vt
       "-nolisten" "tcp" "-logverbose" "-noreset"
       "-configdir" ,config-dir
