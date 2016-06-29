@@ -343,10 +343,11 @@ again."
          (x-font-subdirs (if (file-exists? x-font-dir)
                              (find-files x-font-dir ".")
                              '()))
+         (ttf-dir        (guix-profile-file "fonts" "share/fonts/truetype"))
          (user-font-dir  (home-file ".local/share/fonts"))
          (font-dirs      (if (file-exists? user-font-dir)
-                             (cons user-font-dir x-font-subdirs)
-                             x-font-subdirs)))
+                             (cons* user-font-dir ttf-dir x-font-subdirs)
+                             (cons ttf-dir x-font-subdirs))))
     `("Xdaemon" ,display ,vt
       "-nolisten" "tcp" "-logverbose" "-noreset"
       "-configdir" ,config-dir
