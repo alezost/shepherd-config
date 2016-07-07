@@ -27,6 +27,9 @@
 ;; display; for example: 'x:0', 'xterm:1', etc.
 
 (use-modules
+ (ice-9 popen)
+ (ice-9 rdelim)
+ (ice-9 regex)
  (srfi srfi-1)
  (srfi srfi-26)
  (al display)
@@ -40,6 +43,8 @@
 
 (define %dbus-address
   (format #f "unix:path=/tmp/dbus-~a" (getuid)))
+
+(define %ssh-socket #f)         ; set by 'run-gpg-agent'
 
 
 ;;; Miscellaneous auxiliary code
@@ -61,8 +66,10 @@ If DISPLAY is specified, add it to the environment."
   (environment-excursion
    (lambda ()
      (setenv "DBUS_SESSION_BUS_ADDRESS" %dbus-address)
+     (when %ssh-socket
+       (setenv "SSH_AUTH_SOCK" %ssh-socket))
      (when display
-        (setenv "DISPLAY" display)))
+       (setenv "DISPLAY" display)))
    environ))
 
 ;; Override `make-system-constructor' to make it similar to
@@ -250,22 +257,33 @@ reverse order."
              #:display (available-display))
     #:stop (make-kill-destructor)))
 
+(define (run-gpg-agent)
+  "Run gpg-agent as daemon and set '%ssh-socket' according to its output.
+Return exit status of the gpg-agent."
+  (let* ((pinentry    (guix-user-profile-file "bin/pinentry"))
+         (gpg-command `("gpg-agent" "--daemon"
+                        ,@(if (file-exists? pinentry)
+                              (list "--pinentry-program" pinentry)
+                              '())))
+         (port        (apply open-pipe* OPEN_READ gpg-command))
+         (output      (read-string port))
+         (env-match   (string-match "\\`SSH_AUTH_SOCK=([^;]*)" output)))
+    (when env-match
+      (set! %ssh-socket (match:substring env-match 1)))
+    ;; XXX gpg-agent daemonizes too quickly, so we get a system error
+    ;; (waitpid: No child processes).  Just ignore it and return 0.
+    (catch #t
+      (lambda () (close-pipe port))
+      (const 0))))
+
 (define gpg-agent
   (make-service
     #:docstring "GPG Agent"
     #:provides '(gpg-agent)
-    ;; For some reason gpg-agent won't start without "--daemon" option,
-    ;; so 'make-forkexec-constructor' is not used.
-    #:start
-    (make-system-constructor
-     (let ((pinentry (guix-user-profile-file "bin/pinentry")))
-       `("gpg-agent" "--daemon"
-         ,@(if (not (file-exists? pinentry))
-               '()
-               (list "--pinentry-program" pinentry)))))
-    #:stop
-    (make-system-destructor
-     '("gpg-connect-agent" "killagent" "/bye"))))
+    #:start (lambda _
+              (zero? (status:exit-val (run-gpg-agent))))
+    #:stop (make-system-destructor
+            '("gpg-connect-agent" "killagent" "/bye"))))
 
 (define irexec
   (make-service
