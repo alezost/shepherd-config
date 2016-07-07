@@ -88,9 +88,16 @@ If DISPLAY is specified, add it to the environment."
       (run-command command))))
 
 (define* (make-forkexec-constructor-with-env command #:key display)
-  (make-forkexec-constructor
-   command
-   #:environment-variables (environ* display)))
+  ;; Calling 'make-forkexec-constructor' directly has a downside: it
+  ;; calculates environment immediately (i.e., when a service is created
+  ;; (i.e., when this config file is loaded)).  It is better to delay
+  ;; calculating environment until the service will be started.  This
+  ;; can be done with a simple lambda wrapper.
+  (lambda args
+    (apply (make-forkexec-constructor
+            command
+            #:environment-variables (environ* display))
+           args)))
 
 (define (available-display)
   ;; Check only the first 3 displays.  If none is used, it is very
