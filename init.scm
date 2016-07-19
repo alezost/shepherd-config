@@ -257,6 +257,15 @@ reverse order."
              #:display (available-display))
     #:stop (make-kill-destructor)))
 
+(define guile-daemon
+  (make-service
+    #:docstring "Guile Daemon"
+    #:provides '(guile-daemon)
+    #:start (make-forkexec-constructor-with-env
+             '("guile-daemon")
+             #:display (available-display))
+    #:stop (make-kill-destructor)))
+
 (define (run-gpg-agent)
   "Run gpg-agent as daemon and set '%ssh-socket' according to its output.
 Return exit status of the gpg-agent."
@@ -305,7 +314,7 @@ Return exit status of the gpg-agent."
      '("emacsclient" "--eval" "(let (kill-emacs-hook) (kill-emacs))"))))
 
 (define daemons
-  (list dbus gpg-agent irexec emacs-daemon))
+  (list dbus gpg-agent irexec guile-daemon emacs-daemon))
 
 
 ;;; Misc services
@@ -313,10 +322,10 @@ Return exit status of the gpg-agent."
 (define daemons-target
   (make-target
     #:docstring "Daemons target.
-Start 'dbus', 'gpg-agent', 'irexec' and additional specified services."
+Start daemons and additional specified services."
     #:provides '(daemons)
     #:start
-    (starter #:base-services '(dbus gpg-agent irexec)
+    (starter #:base-services '(dbus guile-daemon gpg-agent irexec)
              #:user-transformer ->symbol)))
 
 (define eval-service
