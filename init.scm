@@ -443,16 +443,6 @@ again."
     #:provides '(xrdb)
     #:command (list "xrdb" "-merge" (config-file "X/Xresources"))))
 
-(define (mosd-service display)
-  (make-simple-display-service display
-    #:docstring "mOSD"
-    #:provides '(mosd)
-    #:start (make-forkexec-constructor-with-env
-             (list "mosdd" "--script" (config-file "mosd/rc"))
-             #:display display)
-    #:stop (make-system-destructor
-            '("mosdctl" "--exit"))))
-
 (define (unclutter-service display)
   (make-simple-forkexec-display-service display
     #:docstring "Unclutter (hide idle cursor)"
@@ -526,7 +516,6 @@ none are specified."
              setxkbmap-service
              xmodmap-service
              xrdb-service
-             mosd-service
              unclutter-service
              openbox-service
              stumpwm-service
