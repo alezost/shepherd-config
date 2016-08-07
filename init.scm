@@ -264,7 +264,13 @@ reverse order."
     #:start (make-forkexec-constructor-with-env
              '("guile-daemon")
              #:display (available-display))
-    #:stop (make-kill-destructor)))
+    #:stop (make-kill-destructor)
+    #:actions
+    (make-actions
+     (lirc
+      "Connect (or reconnect) LIRC daemon client."
+      (make-system-constructor
+       '("gdpipe" "(lirc-client-reconnect)"))))))
 
 (define (run-gpg-agent)
   "Run gpg-agent as daemon and set '%ssh-socket' according to its output.
