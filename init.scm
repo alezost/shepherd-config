@@ -325,7 +325,7 @@ Return exit status of the gpg-agent."
 Start daemons and additional specified services."
     #:provides '(daemons)
     #:start
-    (starter #:base-services '(dbus guile-daemon gpg-agent irexec)
+    (starter #:base-services '(dbus guile-daemon gpg-agent)
              #:user-transformer ->symbol)))
 
 (define eval-service
