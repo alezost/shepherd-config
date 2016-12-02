@@ -62,14 +62,16 @@ Use 'vt7' for display ':0', vt8 for ':1', etc."
 
 (define* (environ* #:optional display)
   "Return environment with some additional things.
-If DISPLAY is specified, add it to the environment."
+If DISPLAY is specified, add it to the environment.
+DISPLAY can be either a string or a procedure returning a string."
   (environment-excursion
    (lambda ()
      (setenv "DBUS_SESSION_BUS_ADDRESS" %dbus-address)
      (when %ssh-socket
        (setenv "SSH_AUTH_SOCK" %ssh-socket))
      (when display
-       (setenv "DISPLAY" display)))
+       (setenv "DISPLAY"
+               (if (string? display) display (display)))))
    environ))
 
 ;; Override `make-system-constructor' to make it similar to
@@ -254,7 +256,7 @@ reverse order."
                    "--address" %dbus-address)
              ;; Start dbus with $DISPLAY, as dbus may start services
              ;; (e.g., notification daemon) that need this environment.
-             #:display (available-display))
+             #:display available-display)
     #:stop (make-kill-destructor)))
 
 (define guile-daemon
@@ -263,7 +265,7 @@ reverse order."
     #:provides '(guile-daemon)
     #:start (make-forkexec-constructor-with-env
              '("guile-daemon")
-             #:display (available-display))
+             #:display available-display)
     #:stop (make-kill-destructor)
     #:actions
     (make-actions
