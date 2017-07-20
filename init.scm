@@ -302,6 +302,24 @@ Return exit status of the gpg-agent."
     #:stop (make-system-destructor
             '("gpg-connect-agent" "killagent" "/bye"))))
 
+(define (postgres-command . args)
+  "Return 'pg_ctl' command to control PostgreSQL server."
+  (cons* "pg_ctl"
+         (string-append "--pgdata=" (home-file ".postgresql/data"))
+         (string-append "--log=" (home-file ".postgresql/log/pg_ctl.log"))
+         args))
+
+(define postgres
+  (make-service
+    #:docstring "PostgreSQL server"
+    #:provides '(postgres postgresql)
+    #:start (make-system-constructor (postgres-command "start"))
+    #:stop (make-system-constructor (postgres-command "stop"))
+    #:actions
+    (make-actions
+     (reload "Reload configuration files."
+             (make-system-constructor (postgres-command "reload"))))))
+
 (define irexec
   (make-service
     #:docstring "IR Exec Daemon"
@@ -322,7 +340,7 @@ Return exit status of the gpg-agent."
      '("emacsclient" "--eval" "(let (kill-emacs-hook) (kill-emacs))"))))
 
 (define daemons
-  (list dbus gpg-agent irexec guile-daemon emacs-daemon))
+  (list dbus gpg-agent irexec postgres guile-daemon emacs-daemon))
 
 
 ;;; Misc services
