@@ -1,17 +1,17 @@
 ;;; init.scm --- Shepherd init file
 
-;; Copyright © 2015, 2016 Alex Kost
+;; Copyright © 2015–2017 Alex Kost
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -393,30 +393,32 @@ again."
   "Return a sudo command for running command indicated by ARGS."
   (cons* "sudo" "--non-interactive" "--" args))
 
-(define (has-fonts.dir? directory)
-  "Return #t if DIRECTORY exists and has 'fonts.dir' file."
-  (file-exists? (string-append directory "/fonts.dir")))
-
 (define* (xorg-command #:key (display ":0") (vt "vt7"))
-  (let* ((config-dir     (config-file "X/xorg.conf"))
-         (module-dir     (let ((modules "lib/xorg/modules"))
-                           (first-existing-file
-                            (guix-system-profile-file modules)
-                            (guix-user-profile-file modules))))
-         (x-font-dir     (guix-profile-file "fonts" "share/fonts/X11"))
-         (x-font-subdirs (if (file-exists? x-font-dir)
-                             (find-files x-font-dir ".")
-                             '()))
-         (ttf-dir        (guix-profile-file "fonts" "share/fonts/truetype"))
-         (user-font-dir  (home-file ".local/share/fonts"))
-         (font-dirs      (filter has-fonts.dir?
-                                 (cons* user-font-dir
-                                        ttf-dir
-                                        x-font-subdirs))))
+  (define (has-fonts.dir? directory)
+    "Return #t if DIRECTORY exists and has 'fonts.dir' file."
+    (file-exists? (string-append directory "/fonts.dir")))
+
+  (define (subdirs directory)
+    "Return a list of sub-directories of DIRECTORY."
+    (if (file-exists? directory)
+        (find-files directory ".")
+        '()))
+
+  (let* ((config-dir (config-file "X/xorg.conf"))
+         (module-dir (let ((modules "lib/xorg/modules"))
+                       (first-existing-file
+                        (guix-system-profile-file modules)
+                        (guix-user-profile-file modules))))
+         (font-dirs
+          (filter has-fonts.dir?
+                  (cons*
+                   (home-file ".local/share/fonts")
+                   (guix-profile-file "fonts" "share/fonts/truetype")
+                   (subdirs (guix-profile-file "fonts" "share/fonts/X11"))))))
     `("Xdaemon" ,display ,vt
       "-nolisten" "tcp" "-logverbose" "-noreset"
       "-configdir" ,config-dir
-      ,@(if (null? x-font-subdirs)
+      ,@(if (null? font-dirs)
             '()
             (list "-fp" (apply comma-separated font-dirs)))
       ,@(if (not module-dir)
