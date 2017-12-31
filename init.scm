@@ -411,10 +411,11 @@ again."
                         (guix-user-profile-file modules))))
          (font-dirs
           (filter has-fonts.dir?
-                  (cons*
-                   (home-file ".local/share/fonts")
-                   (guix-profile-file "fonts" "share/fonts/truetype")
-                   (subdirs (guix-profile-file "fonts" "share/fonts/X11"))))))
+                  (append
+                   (list (home-file ".local/share/fonts"))
+                   (list (guix-profile-file "fonts" "share/fonts/truetype"))
+                   (subdirs (guix-profile-file "fonts" "share/fonts/X11"))
+                   (subdirs "/usr/share/fonts")))))
     `("Xdaemon" ,display ,vt
       "-nolisten" "tcp" "-logverbose" "-noreset"
       "-configdir" ,config-dir
