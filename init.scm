@@ -564,13 +564,15 @@ none are specified."
                (make-display-services ":1")
                (make-display-services ":2")))
 
-;; Do not start services if SHEPHERD_SERVICES is 0 or empty.
-(let ((env (getenv "SHEPHERD_SERVICES")))
-  (unless (and env
-               (or (string-null? env)
-                   (string= "0" env)))
-    (start 'daemons)
-    (start amixer-service)))
+;; For some reason, shepherd does not start services like this anymore,
+;; so I start them from my "~/.bash_profile".
+
+;; ;; Do not start services if SHEPHERD_SERVICES is 0 or empty.
+;; (let ((env (getenv "SHEPHERD_SERVICES")))
+;;   (unless (and env
+;;                (or (string-null? env)
+;;                    (string= "0" env)))
+;;     (start 'daemons)))
 
 (action 'shepherd 'daemonize)
 
