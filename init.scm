@@ -1,6 +1,6 @@
 ;;; init.scm --- Shepherd init file
 
-;; Copyright © 2015–2017 Alex Kost
+;; Copyright © 2015–2026 Alex Kost
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,14 +32,14 @@
  (ice-9 regex)
  (srfi srfi-1)
  (srfi srfi-26)
+ (oop goops)
+ (shepherd service)
  (al display)
  (al files)
  (al plists)
  (al places)
  (al processes)
  (al utils))
-
-;; (use-modules (shepherd service) (oop goops))
 
 (define %dbus-address
   (format #f "unix:path=/tmp/dbus-~a" (getuid)))
