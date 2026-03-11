@@ -35,11 +35,11 @@
  (oop goops)
  (shepherd service)
  (al display)
+ (al strings)
  (al files)
  (al plists)
  (al places)
- (al processes)
- (al utils))
+ (al processes))
 
 (define %dbus-address
   (format #f "unix:path=/tmp/dbus-~a" (getuid)))
